@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>府城百味｜台南美食地圖</title>
+<link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+TC:wght@400;500;700;900&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+<style>
+/* ════════════════════════════════════════
+   CSS VARIABLES & RESET
+════════════════════════════════════════ */
+:root {
+  --cream:       #f5e9d0;
+  --paper:       #ede0c4;
+  --paper-dark:  #d9c9a8;
+  --ink:         #1c0f05;
+  --brown-dark:  #2c1a0e;
+  --brown-mid:   #5c3a1e;
+  --brown-light: #8b5e3c;
+  --red:         #b83028;
+  --red-light:   #d94438;
+  --gold:        #c9932a;
+  --gold-light:  #e8b84b;
+  --gold-pale:   #f0d080;
+  --border:      rgba(139,94,60,0.3);
+  --shadow:      rgba(28,15,5,0.15);
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--cream);
+  color: var(--brown-dark);
+  font-family: 'Noto Serif TC', serif;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* Paper grain texture overlay */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.6;
+}
+
+/* ════════════════════════════════════════
+   NAVBAR
+════════════════════════════════════════ */
+#navbar {
+  position: fixed; top:0; left:0; right:0; z-index: 500;
+  background: var(--brown-dark);
+  border-bottom: 2px solid var(--gold);
+  height: 60px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2rem;
+  transition: box-shadow 0.3s;
+}
+#navbar.scrolled { box-shadow: 0 4px 30px rgba(0,0,0,0.4); }
+
+.nav-brand {
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: 1.55rem;
+  color: var(--gold-light);
+  letter-spacing: 5px;
+  text-shadow: 0 0 20px rgba(201,147,42,0.5);
+  cursor: pointer;
+}
+
+.nav-menu {
+  display: flex; gap: 0; list-style: none;
+}
+.nav-menu li a {
+  display: block;
+  padding: 0 1.1rem;
+  line-height: 60px;
+  color: var(--cream);
+  text-decoration: none;
+  font-size: 0.82rem;
+  letter-spacing: 2px;
+  border-left: 1px solid rgba(255,255,255,0.07);
+  transition: color 0.2s, background 0.2s;
+  font-family: 'Noto Sans TC', sans-serif;
+}
+.nav-menu li a:hover,
+.nav-menu li a.active {
+  color: var(--gold-light);
+  background: rgba(255,255,255,0.05);
+}
+
+.nav-hamburger {
+  display: none;
+  flex-direction: column; gap: 5px;
+  cursor: pointer; padding: 4px;
+}
+.nav-hamburger span {
+  display: block; width: 24px; height: 2px;
+  background: var(--cream);
+  transition: all 0.3s;
+}
+
+/* Mobile menu */
+.mobile-menu {
+  display: none;
+  position: fixed; top: 60px; left:0; right:0;
+  background: var(--brown-dark);
+  border-bottom: 2px solid var(--gold);
+  z-index: 499;
+  flex-direction: column;
+  padding: 0.5rem 0;
+}
+.mobile-menu.open { display: flex; }
+.mobile-menu a {
+  padding: 0.9rem 2rem;
+  color: var(--cream);
+  text-decoration: none;
+  font-size: 0.9rem;
+  letter-spacing: 2px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  font-family: 'Noto Sans TC', sans-serif;
+  transition: color 0.2s, background 0.2s;
+}
+.mobile-menu a:hover { color: var(--gold-light); background: rgba(255,255,255,0.05); }
+
+/* ════════════════════════════════════════
+   HERO
+════════════════════════════════════════ */
+#home {
+  min-height: 100vh;
+  padding-top: 60px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+  background:
+    radial-gradient(ellipse at 65% 35%, rgba(92,58,30,0.18) 0%, transparent 55%),
+    radial-gradient(ellipse at 20% 80%, rgba(201,147,42,0.08) 0%, transparent 50%),
+    var(--cream);
+}
+
+/* Rotating rings */
+.hero-ring {
+  position: absolute; top:50%; left:50%;
+  border-radius: 50%;
+  border: 1px solid var(--gold);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.hero-ring:nth-child(1) {
+  width: min(800px,88vw); height: min(800px,88vw);
+  opacity: 0.12;
+  animation: rotateCW 50s linear infinite;
+}
+.hero-ring:nth-child(2) {
+  width: min(620px,68vw); height: min(620px,68vw);
+  opacity: 0.18; border-style: dashed;
+  animation: rotateCCW 35s linear infinite;
+}
+.hero-ring:nth-child(3) {
+  width: min(440px,48vw); height: min(440px,48vw);
+  opacity: 0.10;
+  animation: rotateCW 25s linear infinite;
+}
+
+@keyframes rotateCW  { to { transform: translate(-50%,-50%) rotate(360deg); } }
+@keyframes rotateCCW { to { transform: translate(-50%,-50%) rotate(-360deg); } }
+
+/* Corner ornaments */
+.hero-corner {
+  position: absolute;
+  width: 72px; height: 72px;
+  border-color: var(--gold);
+  border-style: solid;
+  opacity: 0.45;
+}
+.hero-corner.tl { top:80px; left:20px; border-width:2px 0 0 2px; }
+.hero-corner.tr { top:80px; right:20px; border-width:2px 2px 0 0; }
+.hero-corner.bl { bottom:20px; left:20px; border-width:0 0 2px 2px; }
+.hero-corner.br { bottom:20px; right:20px; border-width:0 2px 2px 0; }
+
+/* Stamp */
+.hero-stamp {
+  position: absolute; top:90px; right:5%;
+  width: 88px; height: 88px;
+  border: 3px double var(--red);
+  border-radius: 50%;
+  display: flex; align-items:center; justify-content:center;
+  flex-direction:column;
+  color: var(--red);
+  font-size: 0.6rem;
+  letter-spacing: 2px;
+  font-weight:700; text-align:center; line-height:1.5;
+  transform: rotate(14deg);
+  opacity: 0.7;
+  animation: heroPop 1.2s 0.8s cubic-bezier(.22,1,.36,1) both;
+  font-family: 'Noto Sans TC', sans-serif;
+}
+
+.hero-content {
+  text-align: center; position: relative; z-index:2;
+  animation: heroRise 1.1s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes heroRise {
+  from { opacity:0; transform: translateY(50px); }
+  to   { opacity:1; transform: translateY(0); }
+}
+@keyframes heroPop {
+  from { opacity:0; transform: rotate(14deg) scale(0.5); }
+  to   { opacity:0.7; transform: rotate(14deg) scale(1); }
+}
+
+.hero-eyebrow {
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 0.72rem; letter-spacing:8px;
+  color: var(--brown-light); margin-bottom: 1rem;
+  font-weight: 300;
+}
+
+.hero-title {
+  font-family: 'Ma Shan Zheng', cursive;
+  font-size: clamp(4rem, 11vw, 7.5rem);
+  line-height: 1.05; letter-spacing: 14px;
+  color: var(--brown-dark);
+  text-shadow: 4px 4px 0 rgba(201,147,42,0.25), 8px 8px 24px rgba(0,0,0,0.12);
+}
+.hero-title .accent { color: var(--red); }
+
+.hero-ornament {
+  display: flex; align-items:center; gap:1.2rem;
+  margin: 1.5rem auto; max-width: 360px;
+}
+.hero-ornament-line {
+  flex:1; height:1px;
+  background: linear-gradient(to right, transparent, var(--gold));
+}
+.hero-ornament-line.rev { background: linear-gradient(to left, transparent, var(--gold)); }
+.hero-ornament-dot { color: var(--gold); font-size:1.1rem; }
+
+.hero-tagline {
+  font-size: 1rem; letter-spacing:4px;
+  color: var(--brown-mid); line-height:2.2;
+}
+
+.hero-btns {
+  margin-top: 2.5rem;
+  display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;
+}
+
+/* ════════════════════════════════════════
+   BUTTONS
+════════════════════════════════════════ */
+.btn {
+  padding: 0.75rem 2rem;
+  font-family: 'Noto Serif TC', serif;
+  font-size: 0.82rem; letter-spacing:3px;
+  cursor: pointer; border-radius:2px;
+  text-decoration: none; display:inline-block;
+  border: none; transition: all 0.25s;
+}
+.btn-dark {
+  background: var(--brown-dark); color: var(--gold-light);
+  border: 2px solid var(--brown-dark);
+}
+.btn-dark:hover { background: var(--brown-mid); border-color: var(--brown-mid); transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,0.25); }
+.btn-ghost {
+  background: transparent; color: var(--brown-dark);
+  border: 2px solid var(--brown-mid);
+}
+.btn-ghost:hover { background: var(--brown-dark); color: var(--gold-light); transform:translateY(-2px); }
+
+/* Scroll hint */
+.scroll-hint {
+  position: absolute; bottom:28px; left:50%; transform:translateX(-50%);
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+  color: var(--brown-light); font-size:0.68rem; letter-spacing:3px; z-index:2;
+  animation: bounce 2.5s ease-in-out infinite;
+  font-family: 'Noto Sans TC', sans-serif;
+}
+.scroll-hint::after { content:'↓'; font-size:1.1rem; }
+@keyframes bounce {
+  0%,100%{ transform:translateX(-50%) translateY(0); }
+  50%    { transform:translateX(-50%) translateY(10px); }
+}
+
+/* ════════════════════════════════════════
+   SECTION COMMONS
+════════════════════════════════════════ */
+.section { padding: 100px 1.5rem; position:relative; z-index:1; }
+
+.section-header { text-align:center; margin-bottom:3.5rem; }
+.section-label {
+  font-family:'Noto Sans TC', sans-serif;
+  font-size:0.68rem; letter-spacing:7px;
+  color: var(--gold); margin-bottom:0.8rem; font-weight:500;
+  text-transform:uppercase;
+}
+.section-title {
+  font-family:'Ma Shan Zheng', cursive;
+  font-size: clamp(2rem,5vw,3rem);
+  letter-spacing:7px; color: var(--brown-dark);
+  position:relative; display:inline-block;
+}
+.section-title::after {
+  content:'';
+  position:absolute; bottom:-12px; left:50%;
+  transform:translateX(-50%);
+  width:55%; height:2px;
+  background:linear-gradient(to right, transparent, var(--gold), transparent);
+}
+.section-sub {
+  margin-top:1.8rem; color:var(--brown-light);
+  font-size:0.88rem; letter-spacing:2px; line-height:2.2;
+}
+
+/* ════════════════════════════════════════
+   CATEGORIES SECTION
+════════════════════════════════════════ */
+#categories {
+  background:
+    repeating-linear-gradient(
+      0deg, transparent, transparent 38px,
+      rgba(139,94,60,0.07) 38px, rgba(139,94,60,0.07) 39px
+    ),
+    var(--paper);
+}
+
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.8rem; max-width: 1100px; margin: 0 auto;
+}
+
+.cat-card {
+  background: var(--cream);
+  border: 1.5px solid rgba(201,147,42,0.35);
+  border-radius: 3px; overflow:hidden;
+  position:relative; cursor:pointer;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.cat-card::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0;
+  height:3px;
+  background: linear-gradient(to right, var(--red), var(--gold));
+}
+.cat-card:hover { transform:translateY(-7px); box-shadow:0 20px 45px rgba(0,0,0,0.15); }
+
+.cat-card-inner { padding: 2rem 1.8rem 1.6rem; text-align:center; }
+.cat-icon { font-size:3.2rem; display:block; margin-bottom:0.8rem; }
+.cat-name {
+  font-family:'Ma Shan Zheng', cursive;
+  font-size:1.5rem; letter-spacing:5px; color:var(--brown-dark);
+  margin-bottom:0.3rem;
+}
+.cat-count {
+  font-family:'Noto Sans TC', sans-serif;
+  font-size:0.7rem; color:var(--gold); letter-spacing:2px; margin-bottom:1rem;
+}
+.cat-tags { display:flex; flex-wrap:wrap; gap:0.4rem; justify-content:center; }
+.tag {
+  font-family:'Noto Sans TC', sans-serif;
+  font-size:0.7rem; padding:0.18rem 0.65rem;
+  border:1px solid rgba(139,94,60,0.4);
+  border-radius:20px; color:var(--brown-mid); letter-spacing:1px;
+  transition: all 0.2s;
+}
+.tag:hover { background:var(--brown-dark); color:var(--gold-light); border-color:var(--brown-dark); }
+
+/* Active category highlight */
+.cat-card.selected { border-color:var(--gold); box-shadow:0 0 0 2px var(--gold)44; }
+
+/* ════════════════════════════════════════
+   FEATURED SECTION
+════════════════════════════════════════ */
+#featured { background: var(--cream); }
+
+.filter-bar {
+  display:flex; justify-content:center; gap:0.5rem; flex-wrap:wrap;
+  margin-bottom:2.5rem;
+}
+.filter-btn {
+  font-family:'Noto Sans TC', sans-serif;
+  font-size:0.75rem; letter-spacing:2px;
+  padding:0.45rem 1.2rem; cursor:pointer;
+  border:1.5px solid var(--border);
+  background:transparent; color:var(--brown-mid);
+  border-radius:20px; transition:all 0.22s;
+}
+.filter-btn:hover,
+.filter-btn.active { background:var(--brown-dark); color:var(--gold-light); border-color:var(--brown-dark); }
+
+.food-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
+  gap:2rem; max-width:1100px; margin:0 auto;
+}
+
+.food-card {
+  background:var(--paper);
+  border:1.5px solid var(--border);
+  border-radius:3px; overflow:hidden;
+  transition:transform 0.3s, box-shadow 0.3s;
+  position:relative;
+}
+.food-card:hover { transform:translateY(-5px); box-shadow:0 14px 35px rgba(0,0,0,0.13); }
+
+.food-thumb {
+  height:190px;
+  background:linear-gradient(135deg, #e8d5b0, #c9a87a);
+  display:flex; align-items:center; justify-content:center;
+  font-size:4.8rem;
+  position:relative; overflow:hidden;
+}
+.food-thumb::after {
+  content:'';
+  position:absolute; inset:0;
+  background:linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.15));
+}
+
+.food-badge {
+  position:absolute; top:12px; right:12px;
+  background:var(--red); color:#fff;
+  font-family:'Noto Sans TC', sans-serif;
+  font-size:0.6rem; padding:0.22rem 0.6rem;
+  letter-spacing:2px; z-index:1;
+}
+
+.food-body { padding:1.3rem 1.5rem 1.6rem; }
+.food-name {
+  font-family:'Ma Shan Zheng', cursive;
+  font-size:1.35rem; letter-spacing:3px; color:var(--brown-dark);
+  margin-bottom:0.3rem;
+}
+.food-location {
+  font-family:'Noto Sans TC', sans-serif;
+  font-size:0.75rem; color:var(--brown-light); letter-spacing:1px;
+  margin-bottom:0.7rem;
+}
+.food-desc {
+  font-size:0.84rem; color:var(--brown-mid);
+  line-height:1.95; letter-spacing:1px;
+}
+.food-footer {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-top:1rem; padding-top:1rem;
+  border-top:1px dashed var(--border);
+}
+.food-price { color:var(--red); font-size:0.9rem; font-weight:700; }
+.food-stars { color:var(--gold); font-size:0.8rem; letter-spacing:1px; }
+
+/* Empty state */
+.empty-state {
+  text-align:center; padding:4rem; color:var(--brown-light);
+  font-size:0.9rem; letter-spacing:2px; grid-column:1/-1;
+}
+
+/* ════════════════════════════════════════
+   MAP SECTION
+════════════════════════════════════════ */
+#map-section {
+  background: linear-gradient(150deg, var(--brown-dark) 0%, #150a03 100%);
+  overflow:hidden; position:relative;
+}
+#map-section::before {
+  content:'';
+  position:absolute; inset:0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Ccircle cx='40' cy='40' r='1.2' fill='%23c9932a' opacity='0.12'/%3E%3C/svg%3E");
+  background-size:80px 80px;
+}
+#map-section .section-title { color:var(--gold-light); }
+#map-section .section-label { color:rgba(201,147,42,0.65); }
+#map-section .section-sub { color:rgba(245,233,208,0.6); }
+
+.map-wrapper { max-width:960px; margin:0 auto; position:relative; }
+
+.district-grid {
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:1.2rem;
+}
+
+.district-card {
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(201,147,42,0.22);
+  border-radius:4px; padding:1.6rem 1rem;
+  text-align:center; cursor:pointer;
+  transition:all 0.25s; position:relative; overflow:hidden;
+}
+.district-card::before {
+  content:'';
+  position:absolute; inset:0;
+  background:linear-gradient(135deg, rgba(201,147,42,0.06), transparent);
+  opacity:0; transition:opacity 0.25s;
+}
+.district-card:hover::before { opacity:1; }
+.district-card:hover { border-color:rgba(201,147,42,0.55); transform:translateY(-4px); }
+.district-card.selected { background:rgba(201,147,42,0.12); border-color:var(--gold); }
+
+.district-icon { font-size:1.8rem; display:block; margin-bottom:0.5rem; }
+.district-name {
+  font-family:'Ma Shan Zheng', cursive;
+  font-size:1.05rem; letter-spacing:3px; color:var(--gold-light);
+}
+.district-count {
+  font-family:'Noto Sans TC', sans-serif;
+  font-size:0.65rem; color:rgba(245,233,208,0.55); letter-spacing:2px; margin-top:0.3rem;
+}
+
+.map-detail-panel {
+  margin-top:1.8rem;
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(201,147,42,0.25);
+  border-radius:4px; padding:2rem;
+  animation: fadeSlide 0.35s ease;
+}
+@keyframes fadeSlide { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+.map-detail-title {
+  font-family:'Ma Shan Zheng', cursive;
+  font-size:1.5rem; letter-spacing:5px; color:var(--gold-light);
+  margin-bottom:0.5rem;
+}
+.map-detail-sub {
+  font-family:'Noto Sans TC', sans-serif;
+  font-size:0.78rem; color:rgba(245,233,208,0.55); letter-spacing:2px; margin-bottom:1.5rem;
+}
+.spot-list { display:flex; flex-wrap:wrap; gap:0.6rem; }
+.spot-chip {
+  font-family:'Noto Sans TC', sans-serif;
+  font-size:0.75rem; padding:0.3rem 0.85rem;
+  border:1px solid rgba(201,147,42,0.35);
+  color:rgba(245,233,208,0.8); border-radius:20px; letter-spacing:1px;
+  transition: all 0.2s;
+}
+.spot-chip:hover { background:rgba(201,147,42,0.2); border-color:var(--gold); }
+
+.map-cta-note {
+  margin-top:1.5rem;
+  font-family:'Noto Sans TC', sans-serif;
+  font-size:0.72rem; color:rgba(245,233,208,0.4); letter-spacing:2px; text-align:center;
+}
+
+/* ════════════════════════════════════════
+   ITINERARY SECTION
+════════════════════════════════════════ */
+#itinerary { background:var(--paper); }
+
+.day-tabs {
+  display:flex; justify-content:center; gap:0;
+  border:1.5px solid var(--border); border-radius:3px;
+  overflow:hidden; max-width:480px; margin:0 auto 3rem;
+}
+.day-tab {
+  flex:1; padding:0.8rem 0.5rem;
+  background:transparent; border:none; border-right:1px solid var(--border);
+  cursor:pointer; font-family:'Noto Serif TC', serif;
+  font-size:0.82rem; letter-spacing:2px; color:var(--brown-light);
+  transition:all 0.22s;
+}
+.day-tab:last-child { border-right:none; }
+.day-tab.active { background:var(--brown-dark); color:var(--gold-light); }
+.day-tab:hover:not(.active) { background:rgba(44,26,14,0.06); }
+
+.itinerary-body { max-width:720px; margin:0 auto; }
+
+.timeline { position:relative; padding-left:3.5rem; }
+.timeline::before {
+  content:''; position:absolute;
+  left:18px; top:0; bottom:0; width:1.5px;
+  background:linear-gradient(to bottom, var(--gold), rgba(201,147,42,0.1));
+}
+
+.tl-item {
+  position:relative; margin-bottom:2.2rem;
+  animation: riseUp 0.45s ease both;
+}
+@keyframes riseUp {
+  from{opacity:0;transform:translateY(18px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.tl-item:nth-child(1){ animation-delay:0.05s }
+.tl-item:nth-child(2){ animation-delay:0.12s }
+.tl-item:nth-child(3){ animation-delay:0.19s }
+.tl-item:nth-child(4){ animation-delay:0.26s }
+.tl-item:nth-child(5){ animation-delay:0.33s }
+
+.tl-dot {
+  position:absolute; left:-2.3rem; top:5px;
+  width:12px; height:12px;
+  background:var(--gold); border-radius:50%;
+  box-shadow:0 0 0 4px var(--paper), 0 0 0 6px rgba(201,147,42,0.35);
+}
+.tl-time {
+  font-family:'Noto Sans TC', sans-serif;
+  font-size:0.7rem; color:var(--gold); letter-spacing:2px; margin-bottom:0.35rem;
+}
+.tl-name {
+  font-family:'Ma Shan Zheng', cursive;
+  font-size:1.2rem; letter-spacing:4px; color:var(--brown-dark); margin-bottom:0.3rem;
+}
+.tl-desc {
+  font-size:0.83rem; color:var(--brown-light);
+  line-height:2; letter-spacing:1px;
+}
+.tl-tags { display:flex; gap:0.4rem; flex-wrap:wrap; margin-top:0.5rem; }
+.tl-tag {
+  font-family:'Noto Sans TC', sans-serif;
+  font-size:0.67rem; padding:0.15rem 0.6rem;
+  background:rgba(201,147,42,0.1);
+  border:1px solid rgba(201,147,42,0.3);
+  color:var(--brown-mid); border-radius:20px;
+}
+
+/* ════════════════════════════════════════
+   FOOTER
+════════════════════════════════════════ */
+footer {
+  background:var(--brown-dark);
+  border-top:2px solid rgba(201,147,42,0.3);
+  text-align:center; padding:3.5rem 2rem;
+  position:relative; z-index:1;
+}
+.footer-brand {
+  font-family:'Ma Shan Zheng', cursive;
+  font-size:2rem; letter-spacing:7px; color:var(--gold-light);
+  margin-bottom:0.5rem;
+}
+.footer-divider {
+  width:120px; height:1px; margin:1.2rem auto;
+  background:linear-gradient(to right, transparent, var(--gold), transparent);
+}
+.footer-links {
+  display:flex; justify-content:center; gap:2rem;
+  flex-wrap:wrap; margin-bottom:1.5rem;
+}
+.footer-links a {
+  font-family:'Noto Sans TC', sans-serif;
+  font-size:0.75rem; letter-spacing:2px;
+  color:rgba(245,233,208,0.5); text-decoration:none;
+  transition:color 0.2s;
+}
+.footer-links a:hover { color:var(--gold-light); }
+.footer-copy {
+  font-family:'Noto Sans TC', sans-serif;
+  font-size:0.7rem; letter-spacing:3px;
+  color:rgba(245,233,208,0.3);
+}
+
+/* ════════════════════════════════════════
+   TRANSITIONS & UTILITY
+════════════════════════════════════════ */
+.fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+
+/* ════════════════════════════════════════
+   RESPONSIVE
+════════════════════════════════════════ */
+@media (max-width:768px) {
+  .nav-menu { display:none; }
+  .nav-hamburger { display:flex; }
+  .hero-stamp { display:none; }
+  .district-grid { grid-template-columns:repeat(2,1fr); }
+  .cat-grid { grid-template-columns:1fr; }
+  .food-grid { grid-template-columns:1fr; }
+  .day-tabs { font-size:0.75rem; }
+}
+@media (max-width:480px) {
+  .district-grid { grid-template-columns:1fr 1fr; gap:0.8rem; }
+  .hero-title { letter-spacing:8px; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══ NAVBAR ══ -->
+  <nav id="navbar" :class="{ scrolled: scrolled }">
+    <div class="nav-brand" @click="scrollTo('home')">府城百味</div>
+    <ul class="nav-menu">
+      <li v-for="item in navItems" :key="item.id">
+        <a :href="'#'+item.id"
+           :class="{ active: activeSection === item.id }"
+           @click.prevent="scrollTo(item.id)">{{ item.label }}</a>
+      </li>
+    </ul>
+    <div class="nav-hamburger" @click="mobileOpen = !mobileOpen">
+      <span></span><span></span><span></span>
+    </div>
+  </nav>
+
+  <!-- Mobile menu -->
+  <div class="mobile-menu" :class="{ open: mobileOpen }">
+    <a v-for="item in navItems" :key="item.id"
+       :href="'#'+item.id"
+       @click.prevent="scrollTo(item.id); mobileOpen=false">{{ item.label }}</a>
+  </div>
+
+  <!-- ══ HERO ══ -->
+  <section id="home" class="hero">
+    <div class="hero-ring"></div>
+    <div class="hero-ring"></div>
+    <div class="hero-ring"></div>
+    <div class="hero-corner tl"></div>
+    <div class="hero-corner tr"></div>
+    <div class="hero-corner bl"></div>
+    <div class="hero-corner br"></div>
+    <div class="hero-stamp">府城<br>美食<br>指南</div>
+
+    <div class="hero-content">
+      <p class="hero-eyebrow">TAINAN FOOD CULTURE · 府城百年風味</p>
+      <h1 class="hero-title">台<span class="accent">南</span>美食</h1>
+      <div class="hero-ornament">
+        <div class="hero-ornament-line"></div>
+        <span class="hero-ornament-dot">✦</span>
+        <div class="hero-ornament-line rev"></div>
+      </div>
+      <p class="hero-tagline">舌尖上的府城故事<br>百年老味道，等你來品嚐</p>
+      <div class="hero-btns">
+        <button class="btn btn-dark" @click="scrollTo('featured')">探索美食</button>
+        <button class="btn btn-ghost" @click="scrollTo('itinerary')">規劃行程</button>
+      </div>
+    </div>
+
+    <div class="scroll-hint">向下滾動</div>
+  </section>
+
+  <!-- ══ CATEGORIES ══ -->
+  <section id="categories" class="section">
+    <div class="section-header">
+      <p class="section-label">Food Categories</p>
+      <h2 class="section-title">美食分類</h2>
+      <p class="section-sub">府城美食千萬種，從街邊小吃到甜蜜甜點，應有盡有</p>
+    </div>
+    <div class="cat-grid">
+      <div
+        v-for="cat in categories" :key="cat.id"
+        class="cat-card"
+        :class="{ selected: selectedCategory === cat.id }"
+        @click="selectCategory(cat.id)"
+      >
+        <div class="cat-card-inner">
+          <span class="cat-icon">{{ cat.icon }}</span>
+          <div class="cat-name">{{ cat.name }}</div>
+          <div class="cat-count">{{ cat.count }} 道推薦</div>
+          <div class="cat-tags">
+            <span class="tag" v-for="t in cat.tags" :key="t">{{ t }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ FEATURED ══ -->
+  <section id="featured" class="section">
+    <div class="section-header">
+      <p class="section-label">Featured Dishes</p>
+      <h2 class="section-title">精選推薦</h2>
+      <p class="section-sub">嚴選台南必吃的經典美食，每一道都是府城的靈魂滋味</p>
+    </div>
+
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <button
+        v-for="f in filters" :key="f.id"
+        class="filter-btn"
+        :class="{ active: activeFilter === f.id }"
+        @click="activeFilter = f.id"
+      >{{ f.label }}</button>
+    </div>
+
+    <!-- Food grid -->
+    <div class="food-grid">
+      <transition-group name="fade">
+        <div
+          v-for="food in filteredFoods" :key="food.id"
+          class="food-card"
+        >
+          <div class="food-thumb">
+            <span>{{ food.emoji }}</span>
+            <span class="food-badge">{{ food.badge }}</span>
+          </div>
+          <div class="food-body">
+            <div class="food-name">{{ food.name }}</div>
+            <div class="food-location">{{ food.shop }}｜{{ food.area }}</div>
+            <p class="food-desc">{{ food.desc }}</p>
+            <div class="food-footer">
+              <span class="food-price">{{ food.price }}</span>
+              <span class="food-stars">{{ food.stars }} ★★★★★</span>
+            </div>
+          </div>
+        </div>
+        <div v-if="filteredFoods.length === 0" class="empty-state" key="empty">
+          此分類暫無資料，請選擇其他分類 ✦
+        </div>
+      </transition-group>
+    </div>
+  </section>
+
+  <!-- ══ MAP ══ -->
+  <section id="map-section" class="section">
+    <div class="section-header">
+      <p class="section-label">Restaurant Map</p>
+      <h2 class="section-title">餐廳地圖</h2>
+      <p class="section-sub">依地區探索台南，每個角落都藏著令人難忘的美味</p>
+    </div>
+    <div class="map-wrapper">
+      <div class="district-grid">
+        <div
+          v-for="d in districts" :key="d.id"
+          class="district-card"
+          :class="{ selected: selectedDistrict === d.id }"
+          @click="selectedDistrict = selectedDistrict===d.id ? null : d.id"
+        >
+          <span class="district-icon">{{ d.icon }}</span>
+          <div class="district-name">{{ d.name }}</div>
+          <div class="district-count">{{ d.count }} 個美食據點</div>
+        </div>
+      </div>
+
+      <!-- District detail -->
+      <transition name="fade">
+        <div class="map-detail-panel" v-if="currentDistrict">
+          <div class="map-detail-title">{{ currentDistrict.name }}</div>
+          <div class="map-detail-sub">{{ currentDistrict.desc }}</div>
+          <div class="spot-list">
+            <span class="spot-chip" v-for="s in currentDistrict.spots" :key="s">{{ s }}</span>
+          </div>
+          <p class="map-cta-note">✦ 點擊各地區可切換顯示 ✦</p>
+        </div>
+      </transition>
+    </div>
+  </section>
+
+  <!-- ══ ITINERARY ══ -->
+  <section id="itinerary" class="section">
+    <div class="section-header">
+      <p class="section-label">Travel Itinerary</p>
+      <h2 class="section-title">行程推薦</h2>
+      <p class="section-sub">為你規劃最完整的台南美食之旅，一日至三日任你選</p>
+    </div>
+
+    <div class="day-tabs">
+      <button
+        v-for="day in itinerary" :key="day.id"
+        class="day-tab"
+        :class="{ active: activeDay === day.id }"
+        @click="activeDay = day.id"
+      >{{ day.label }}</button>
+    </div>
+
+    <div class="itinerary-body">
+      <transition name="fade" mode="out-in">
+        <div class="timeline" :key="activeDay">
+          <div class="tl-item" v-for="item in currentItinerary" :key="item.time">
+            <div class="tl-dot"></div>
+            <div class="tl-time">{{ item.time }}</div>
+            <div class="tl-name">{{ item.name }}</div>
+            <p class="tl-desc">{{ item.desc }}</p>
+            <div class="tl-tags">
+              <span class="tl-tag" v-for="t in item.tags" :key="t">{{ t }}</span>
+            </div>
+          </div>
+        </div>
+      </transition>
+    </div>
+  </section>
+
+  <!-- ══ FOOTER ══ -->
+  <footer>
+    <div class="footer-brand">府城百味</div>
+    <div class="footer-divider"></div>
+    <div class="footer-links">
+      <a href="#" @click.prevent="scrollTo('home')">首頁</a>
+      <a href="#" @click.prevent="scrollTo('categories')">美食分類</a>
+      <a href="#" @click.prevent="scrollTo('featured')">精選推薦</a>
+      <a href="#" @click.prevent="scrollTo('map-section')">餐廳地圖</a>
+      <a href="#" @click.prevent="scrollTo('itinerary')">行程規劃</a>
+    </div>
+    <p class="footer-copy">© 2025 府城百味 · 台南美食指南 · 用心記錄每一道老味道</p>
+  </footer>
+
+</div><!-- #app -->
+
+<script>
+const { createApp, ref, computed, onMounted, onUnmounted } = Vue;
+
+createApp({
+  setup() {
+
+    /* ── NAV ── */
+    const scrolled = ref(false);
+    const activeSection = ref('home');
+    const mobileOpen = ref(false);
+
+    const navItems = [
+      { id:'home',        label:'首頁' },
+      { id:'categories',  label:'美食分類' },
+      { id:'featured',    label:'精選推薦' },
+      { id:'map-section', label:'餐廳地圖' },
+      { id:'itinerary',   label:'行程規劃' },
+    ];
+
+    function scrollTo(id) {
+      const el = document.getElementById(id);
+      if (el) el.scrollIntoView({ behavior:'smooth' });
+    }
+
+    function onScroll() {
+      scrolled.value = window.scrollY > 30;
+      const sections = navItems.map(n => document.getElementById(n.id)).filter(Boolean);
+      for (let i = sections.length - 1; i >= 0; i--) {
+        if (window.scrollY >= sections[i].offsetTop - 80) {
+          activeSection.value = navItems[i].id;
+          break;
+        }
+      }
+    }
+
+    onMounted(() => window.addEventListener('scroll', onScroll));
+    onUnmounted(() => window.removeEventListener('scroll', onScroll));
+
+    /* ── CATEGORIES ── */
+    const selectedCategory = ref(null);
+
+    const categories = [
+      {
+        id:'snack', icon:'🍜', name:'小吃', count:28,
+        tags:['碗粿','肉燥飯','蚵仔煎','魚丸湯','米糕']
+      },
+      {
+        id:'sweet', icon:'🧁', name:'甜點', count:18,
+        tags:['鳳梨酥','芋圓','燒仙草','杏仁豆腐','麻糬']
+      },
+      {
+        id:'drink', icon:'🧃', name:'飲料', count:14,
+        tags:['古早味紅茶','冬瓜茶','甘蔗汁','仙草蜜','木瓜牛奶']
+      },
+      {
+        id:'seafood', icon:'🦐', name:'海鮮', count:16,
+        tags:['蚵仔麵線','鮮蚵酥','虱目魚粥','炒花枝','海鮮粥']
+      },
+      {
+        id:'noodle', icon:'🍝', name:'麵食', count:12,
+        tags:['擔仔麵','牛肉湯麵','意麵','鱔魚意麵','米粉湯']
+      },
+      {
+        id:'bbq', icon:'🍢', name:'燒烤', count:10,
+        tags:['碳烤玉米','烤魷魚','串燒','烤肉飯','鹽酥雞']
+      },
+    ];
+
+    function selectCategory(id) {
+      selectedCategory.value = selectedCategory.value === id ? null : id;
+      if (selectedCategory.value) activeFilter.value = id;
+    }
+
+    /* ── FEATURED ── */
+    const activeFilter = ref('all');
+
+    const filters = [
+      { id:'all',     label:'全部' },
+      { id:'snack',   label:'小吃' },
+      { id:'sweet',   label:'甜點' },
+      { id:'drink',   label:'飲料' },
+      { id:'seafood', label:'海鮮' },
+      { id:'noodle',  label:'麵食' },
+      { id:'bbq',     label:'燒烤' },
+    ];
+
+    const foods = [
+      {
+        id:1, category:'snack', emoji:'🍲', badge:'百年老店',
+        name:'虱目魚粥', shop:'阿憨鹹粥', area:'永樂市場',
+        desc:'清晨五點開門，湯頭乳白濃郁，虱目魚鮮嫩無刺，配上蚵仔與豬血，是老台南人的第一口早晨。',
+        price:'NT$60', stars:'4.9'
+      },
+      {
+        id:2, category:'snack', emoji:'🥣', badge:'必吃推薦',
+        name:'碗粿', shop:'再發號肉粽', area:'中正路',
+        desc:'百年老鋪的碗粿，米漿蒸製細滑如玉，淋上獨家黑蒜頭醬油，是府城最樸實的感動。',
+        price:'NT$45', stars:'4.8'
+      },
+      {
+        id:3, category:'snack', emoji:'🍚', badge:'在地首選',
+        name:'肉燥飯', shop:'矮仔成蝦仁飯', area:'海安路',
+        desc:'粒粒分明的蓬萊米，鋪上滿滿滷得油亮的肉燥，搭配蝦仁更顯鮮甜，一碗吃出府城魂。',
+        price:'NT$55', stars:'4.7'
+      },
+      {
+        id:4, category:'sweet', emoji:'🍍', badge:'人氣甜點',
+        name:'鳳梨酥', shop:'舊來發餅舖', area:'赤崁樓附近',
+        desc:'傳統糕餅師傅手工製作，外皮酥鬆化口，內餡是真實鳳梨熬煮，甜而不膩，帶回家的最佳伴手禮。',
+        price:'NT$35/個', stars:'4.9'
+      },
+      {
+        id:5, category:'sweet', emoji:'🍠', badge:'消暑聖品',
+        name:'芋圓燒仙草', shop:'莉莉水果店', area:'府前路',
+        desc:'手工紫芋圓Q彈有嚼勁，沉入濃黑仙草凍之中，搭配嫩花生與愛玉，台南夏天的最佳解答。',
+        price:'NT$75', stars:'4.8'
+      },
+      {
+        id:6, category:'drink', emoji:'🍵', badge:'古早滋味',
+        name:'古早味紅茶', shop:'雙全紅茶', area:'保安路',
+        desc:'超過七十年的老茶鋪，大茶壺悶出的茶湯琥珀色澤透亮，微苦回甘，是台南人的日常解渴飲品。',
+        price:'NT$25', stars:'4.9'
+      },
+      {
+        id:'sweet3', category:'sweet', emoji:'🍮', badge:'古早珍味',
+        name:'杏仁豆腐', shop:'福記肉圓', area:'府前路',
+        desc:'台南傳統手工杏仁豆腐，以真實杏仁磨漿凝製，口感細嫩如雲，淋上糖水與枸杞，是府城最溫柔的一口甜。',
+        price:'NT$45', stars:'4.8'
+      },
+      {
+        id:'drink2', category:'drink', emoji:'🥤', badge:'夏日消暑',
+        name:'冬瓜茶', shop:'義豐冬瓜行', area:'民族路',
+        desc:'百年冬瓜磚老店，以傳統古法熬煮冬瓜，茶色深褐透亮，甜而不膩清涼解渴，是台南夏日最道地的消暑聖品。',
+        price:'NT$30', stars:'4.9'
+      },
+      {
+        id:'drink3', category:'drink', emoji:'🥛', badge:'南台灣風味',
+        name:'木瓜牛奶', shop:'莉莉水果店', area:'府前路',
+        desc:'選用台南在地熟成木瓜，現打現喝，與鮮奶完美融合，色澤橙黃濃郁，甜香滑順，是府城水果攤最溫暖的滋味。',
+        price:'NT$60', stars:'4.8'
+      },
+      {
+        id:7, category:'seafood', emoji:'🫔', badge:'海味首選',
+        name:'蚵仔煎', shop:'海安路無名蚵仔煎', area:'海安路',
+        desc:'台灣肥碩鮮蚵配上番薯粉漿，在鐵板上煎至焦香，淋上特調甜辣醬，夜市裡最受歡迎的台南靈魂小吃。',
+        price:'NT$65', stars:'4.7'
+      },
+      {
+        id:8, category:'seafood', emoji:'🐟', badge:'早市推薦',
+        name:'虱目魚肚', shop:'阿堂鹹粥', area:'西門路',
+        desc:'取虱目魚最精華的魚肚部位，魚油豐厚、口感滑嫩，搭配清淡鹹粥，是台南最受老饕推崇的早餐選擇。',
+        price:'NT$90', stars:'4.9'
+      },
+      {
+        id:9, category:'seafood', emoji:'🦑', badge:'夜市人氣',
+        name:'小卷米粉', shop:'葉家小卷米粉', area:'保安路',
+        desc:'百年老店招牌，鮮甜小卷與細滑米粉同煮，湯頭以蝦殼熬製清甜不膩，是台南夜市最迷人的一碗。',
+        price:'NT$70', stars:'4.8'
+      },
+      {
+        id:10, category:'noodle', emoji:'🍜', badge:'府城經典',
+        name:'擔仔麵', shop:'度小月擔仔麵', area:'中正路',
+        desc:'創始於清光緒年間，以蝦頭熬製的清甜湯底，搭配特製肉燥與彈牙細麵，一小碗承載百年府城味蕾記憶。',
+        price:'NT$65', stars:'5.0'
+      },
+      {
+        id:11, category:'noodle', emoji:'🍝', badge:'獨門秘方',
+        name:'鱔魚意麵', shop:'阿江炒鱔魚', area:'民族路',
+        desc:'大火快炒的台南傳統功夫菜，鱔魚鮮嫩爽滑，意麵吸飽濃郁醬汁，酸甜鹹香在口中完美交融，是府城夜市的靈魂料理。',
+        price:'NT$120', stars:'4.9'
+      },
+      {
+        id:12, category:'noodle', emoji:'🥩', badge:'老饕最愛',
+        name:'牛肉湯米粉', shop:'永記牛肉湯', area:'西門路',
+        desc:'台南清燙溫體牛肉湯搭配在地米粉，肉質鮮嫩帶甜，搭配薑絲與沙茶醬，冬日暖心首選。',
+        price:'NT$100', stars:'4.8'
+      },
+      {
+        id:13, category:'bbq', emoji:'🌽', badge:'夜市排隊王',
+        name:'碳烤玉米', shop:'花園夜市碳烤', area:'海安路花園夜市',
+        desc:'炭火慢烤的甜玉米，刷上特調奶油醬油，焦香撲鼻、粒粒飽滿，是台南夜市最具人氣的排隊銅板美食。',
+        price:'NT$50', stars:'4.7'
+      },
+      {
+        id:14, category:'bbq', emoji:'🍗', badge:'宵夜首選',
+        name:'鹽酥雞', shop:'東區無名鹽酥雞', area:'崇學路',
+        desc:'現點現炸，雞塊外皮酥脆金黃，內裡鮮嫩多汁，搭配九層塔爆香，灑上胡椒鹽，是台南深夜最治癒的滋味。',
+        price:'NT$80', stars:'4.8'
+      },
+      {
+        id:15, category:'bbq', emoji:'🦐', badge:'海味炭香',
+        name:'碳烤魷魚', shop:'武聖夜市碳烤攤', area:'武聖夜市',
+        desc:'整尾魷魚在炭火上緩緩烤至微焦，刷上甜辣醬與醬油膏，煙燻香氣四散，一口咬下鮮甜彈牙，夜市必點海味。',
+        price:'NT$100', stars:'4.7'
+      },
+    ];
+
+    const filteredFoods = computed(() => {
+      if (activeFilter.value === 'all') return foods;
+      return foods.filter(f => f.category === activeFilter.value);
+    });
+
+    /* ── MAP ── */
+    const selectedDistrict = ref(null);
+
+    const districts = [
+      { id:'zhongxi', icon:'🏯', name:'中西區', count:32, desc:'台南歷史文化最密集之處，赤崁樓、孔廟周邊聚集無數百年老店與街邊小攤。', spots:['赤崁樓周邊','孔廟商圈','保安路','民族路','西門路'] },
+      { id:'anping', icon:'⛵', name:'安平區', count:18, desc:'古老的安平老街，充滿漁村風情，盛產虱目魚與各式海鮮，老街上甜點與小吃林立。', spots:['安平老街','億載金城','安平漁港','安平樹屋','海頭社'] },
+      { id:'dong',   icon:'🌸', name:'東區',   count:20, desc:'府城現代商業核心，小吃與時尚並存，許多新生代的創意台式料理在這裡發芽茁壯。', spots:['崇學路','東寧路','長榮路','前鋒路夜市','裕農路'] },
+      { id:'north',  icon:'🎪', name:'北區',   count:15, desc:'在地居民的生活圈，少有觀光人潮，卻是老台南人口耳相傳的隱藏版美食集散地。', spots:['成功路','北園街','公園南路','海安路北段','文賢路'] },
+      { id:'nanqu',  icon:'🌊', name:'南區',   count:12, desc:'臨近漁塭與海岸，盛產各式漁獲，台南最道地的早市文化與漁夫料理在此延續。', spots:['喜樹老街','鯤鯓路','喜樹漁港','灣裡市場','永華路'] },
+      { id:'rende',  icon:'🌿', name:'仁德區', count:10, desc:'台南郊區的自然風光與在地農產交織，甘蔗製品與古法甜點在這裡保有最純粹的滋味。', spots:['仁德老街','太子廟商圈','德安購物中心','中洲路','保安車站'] },
+    ];
+
+    const currentDistrict = computed(() =>
+      districts.find(d => d.id === selectedDistrict.value) || null
+    );
+
+    /* ── ITINERARY ── */
+    const activeDay = ref('day1');
+
+    const itinerary = [
+      { id:'day1', label:'一日遊' },
+      { id:'day2', label:'二日遊' },
+      { id:'day3', label:'三日遊' },
+    ];
+
+    const itineraryData = {
+      day1: [
+        { time:'07:00 AM', name:'阿堂鹹粥', desc:'一天的開始從道地的台南早餐出發，虱目魚肚鹹粥搭配油條，感受府城清晨最真實的生活氣息。', tags:['早餐','虱目魚','中西區'] },
+        { time:'09:30 AM', name:'赤崁樓文化散步', desc:'在歷史建築間漫步，探訪周邊的傳統餅舖與手工糕點，帶走一盒道地的台南鳳梨酥。', tags:['文化','古蹟','伴手禮'] },
+        { time:'12:00 PM', name:'矮仔成蝦仁飯', desc:'午餐選擇府城最知名的蝦仁飯，粒粒分明的米飯配上鮮甜蝦仁與肉燥，簡單而滿足。', tags:['午餐','蝦仁飯','必吃'] },
+        { time:'03:00 PM', name:'莉莉水果店', desc:'下午茶時光選擇一碗芋圓燒仙草，手工芋圓Q彈，仙草清涼消暑，是台南午後的完美休憩。', tags:['甜點','消暑','下午茶'] },
+        { time:'06:00 PM', name:'花園夜市', desc:'台南最大夜市，雙全紅茶、海安路蚵仔煎、碳烤玉米，在燈火通明的夜市中結束完美一日。', tags:['夜市','宵夜','熱鬧'] },
+      ],
+      day2: [
+        { time:'07:30 AM', name:'阿憨鹹粥', desc:'第二天換一間，同樣是老台南人的心頭好，虱目魚粥搭配豬血湯，豐盛開啟新的一天。', tags:['早餐','永樂市場','在地'] },
+        { time:'10:00 AM', name:'安平老街漫遊', desc:'前往安平探索老聚落，沿途品嚐蝦捲、蚵仔酥等安平特產，感受漁村與歷史交融的風情。', tags:['安平','老街','海鮮'] },
+        { time:'12:30 PM', name:'安平海鮮料理', desc:'在漁港附近的海鮮餐廳午餐，現撈漁獲、清蒸虱目魚頭、炒花枝，台南最鮮美的海味。', tags:['午餐','海鮮','安平'] },
+        { time:'03:30 PM', name:'葉家小卷米粉', desc:'百年老店的小卷米粉，米粉細滑爽口，小卷新鮮Q彈，湯頭清甜，台南宵夜文化的代表之作。', tags:['小吃','米粉','百年老店'] },
+        { time:'07:00 PM', name:'保安路美食街', desc:'保安路是老台南最道地的美食走廊，各式小吃攤夜晚齊聚，雙全紅茶飄香，結束美好第二天。', tags:['宵夜','夜生活','保安路'] },
+      ],
+      day3: [
+        { time:'06:30 AM', name:'西門市場早市', desc:'跟著在地人逛早市，把握清晨最新鮮的食材與攤販，體驗台南最真實的市井生活文化。', tags:['早市','在地生活','中西區'] },
+        { time:'09:00 AM', name:'孔廟商圈探索', desc:'台灣首廟孔廟周邊隱藏許多百年糕點舖，手工麻糬、古早味蛋糕，帶走屬於台南的甜蜜記憶。', tags:['孔廟','糕點','伴手禮'] },
+        { time:'12:00 PM', name:'度小月擔仔麵', desc:'台南最具代表性的擔仔麵，以蝦頭熬製的湯底鮮甜回甘，加上特製肉燥，百年不變的府城好味道。', tags:['午餐','擔仔麵','必吃'] },
+        { time:'02:30 PM', name:'永樂市場布行與小吃', desc:'傳統布市旁的小吃攤，品嚐道地的碗粿與米糕，在傳統與現代交融的空間感受台南的生命力。', tags:['碗粿','米糕','永樂市場'] },
+        { time:'05:00 PM', name:'安平夕陽 × 蝦捲', desc:'帶著台南名產蝦捲，到安平漁港看夕陽，金色光芒灑在漁船上，為三天的美食之旅畫下最美句點。', tags:['夕陽','安平','蝦捲'] },
+      ],
+    };
+
+    const currentItinerary = computed(() => itineraryData[activeDay.value] || []);
+
+    return {
+      scrolled, activeSection, mobileOpen, navItems, scrollTo,
+      categories, selectedCategory, selectCategory,
+      activeFilter, filters, filteredFoods,
+      districts, selectedDistrict, currentDistrict,
+      itinerary, activeDay, currentItinerary,
+    };
+  }
+}).mount('#app');
+</script>
+</body>
+</html>
